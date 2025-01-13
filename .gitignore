@@ -1,0 +1,15 @@
+# build files
+bin/
+obj/
+
+# ide files
+.idea/
+.vs/
+.vscode/
+
+# user-specific files
+*.suo
+*.user
+*.userosscache
+.sln.docstates
+

@@ -1,0 +1,6 @@
+@health_pal_backend_HostAddress = http://localhost:5262
+
+GET {{health_pal_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

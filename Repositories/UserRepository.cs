@@ -35,12 +35,12 @@ public class UserRepository : IUserRepository
         return await _context.Users.ToListAsync();
     }
 
-    public async Task<UserModel> GetByEmailAsync(string email)
+    public async Task<UserModel?> GetByEmailAsync(string email)
     {
         return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
     }
 
-    public async Task<UserModel> GetByIdAsync(int id)
+    public async Task<UserModel?> GetByIdAsync(int id)
     {
         return await _context.Users.FindAsync(id);
     }

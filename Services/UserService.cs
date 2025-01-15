@@ -40,7 +40,6 @@ public class UserService : IUserService
 
         var user = new UserModel
         {
-            Id = 2,
             Name = dto.Name,
             Email = dto.Email,
             Password = BCrypt.Net.BCrypt.HashPassword(dto.Password)

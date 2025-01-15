@@ -5,8 +5,25 @@ using health_pal_backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add logging functionality
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+{
+    builder.Logging.AddEventLog();
+}
+
+// Create a logger instance
+var logger = builder.Logging.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+
+// Load the env file
+DotNetEnv.Env.Load();
+logger.LogInformation("Env file loaded");
 
 // Add services to the container.
 
@@ -29,17 +46,18 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")))
     };
 });
+logger.LogInformation("JWT Authentication Service Started");
 
-builder.Services.AddDbContext<AppDbContext>(e => e.UseSqlServer(builder.Configuration["ConnectionStrings:DefaultConnection"]));
+builder.Services.AddDbContext<AppDbContext>(e => e.UseSqlServer(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")));
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-
 var app = builder.Build();
+logger.LogInformation("Application Builder configuration complete");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -61,3 +79,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+logger.LogInformation("Application Started");

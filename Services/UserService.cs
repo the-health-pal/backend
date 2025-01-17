@@ -53,7 +53,7 @@ public class UserService : IUserService
 
         var userBioData = new UserBioDataModel
         {
-            Id = user.Id,
+            UserId = user.Id,
             BirthDay = dto.BirthDate,
             Weight = dto.Weight,
             Height = dto.Height

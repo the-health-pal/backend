@@ -16,7 +16,7 @@ namespace Dotnet_Core_Project.Repositories
 
         public async Task AddAsync(UserBioDataModel userBioData)
         {
-            await _container.CreateItemAsync(userBioData, new PartitionKey(userBioData.Id));
+            await _container.CreateItemAsync(userBioData, new PartitionKey(userBioData.UserId));
         }
 
         public async Task<UserBioDataModel?> GetIdByAsync(int id)
@@ -46,7 +46,7 @@ namespace Dotnet_Core_Project.Repositories
 
         public async Task UpdateAsync(UserBioDataModel userBioData)
         {
-            await _container.UpsertItemAsync(userBioData, new PartitionKey(userBioData.Id));
+            await _container.UpsertItemAsync(userBioData, new PartitionKey(userBioData.UserId));
         }
 
         public async Task DeleteAsync(int id)

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Runtime.InteropServices;
 using Microsoft.Azure.Cosmos;
+using Dotnet_Core_Project.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,7 @@ builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserBioDataRepository, UserBioDataRepository>();
 
 var app = builder.Build();
 logger.LogInformation("Application Builder configuration complete");

@@ -19,7 +19,7 @@ namespace Dotnet_Core_Project.Repositories
             await _container.CreateItemAsync(userBioData, new PartitionKey(userBioData.Id));
         }
 
-        public async Task<UserBioDataModel> GetIdByAsync(int id)
+        public async Task<UserBioDataModel?> GetIdByAsync(int id)
         {
             try
             {

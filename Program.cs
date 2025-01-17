@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Runtime.InteropServices;
+using Microsoft.Azure.Cosmos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,12 @@ builder.Services.AddAuthentication(options =>
 logger.LogInformation("JWT Authentication Service Started");
 
 builder.Services.AddDbContext<AppDbContext>(e => e.UseSqlServer(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")));
+
+builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    return new CosmosClient(configuration["CosmosDb:AccountEndpoint"], configuration["CosmosDb:AccountKey"]);
+});
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

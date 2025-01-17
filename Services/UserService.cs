@@ -2,6 +2,7 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Dotnet_Core_Project.Repositories;
 using health_pal_backend.DTOs;
 using health_pal_backend.Models;
 using health_pal_backend.Repositories;
@@ -23,10 +24,12 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
-    public UserService(IUserRepository userRepository, IConfiguration configuration)
+    private readonly IUserBioDataRepository _userBioDataRepository;
+    public UserService(IUserRepository userRepository, IConfiguration configuration, IUserBioDataRepository userBioDataRepository)
     {
         _userRepository = userRepository;
         _configuration = configuration;
+        _userBioDataRepository = userBioDataRepository;
     }
 
     public async Task<string> RegisterAsync(UserRegDTO dto)
@@ -47,6 +50,16 @@ public class UserService : IUserService
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
+
+        var userBioData = new UserBioDataModel
+        {
+            Id = user.Id,
+            BirthDay = dto.BirthDate,
+            Weight = dto.Weight,
+            Height = dto.Height
+        };
+
+        await _userBioDataRepository.AddAsync(userBioData);
 
         return GenerateJwtToken(user);
     }
@@ -101,6 +114,7 @@ public class UserService : IUserService
 
         await _userRepository.DeleteAsync(user);
         await _userRepository.SaveChangesAsync();
+        await _userBioDataRepository.DeleteAsync(id);
     }
 
     private string GenerateJwtToken(UserModel user)

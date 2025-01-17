@@ -6,5 +6,8 @@ public record class UserRegDTO
 (
     [Required]string Name,
     [Required]string Email,
-    [Required]string Password
+    [Required]string Password,
+    [Required]DateOnly BirthDate,
+    [Required]float Weight,
+    [Required]float Height
 );

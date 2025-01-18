@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Runtime.InteropServices;
 using Microsoft.Azure.Cosmos;
 using Dotnet_Core_Project.Repositories;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,20 +41,15 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-    var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
-    if(string.IsNullOrEmpty(jwtKey))
-    {
-        throw new InvalidOperationException("JWT Key is missing");
-    }
     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+        ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")))
     };
 });
 logger.LogInformation("JWT Authentication Service Started");
@@ -63,7 +59,9 @@ builder.Services.AddDbContext<AppDbContext>(e => e.UseSqlServer(Environment.GetE
 builder.Services.AddSingleton<CosmosClient>(serviceProvider =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    return new CosmosClient(configuration["CosmosDb:AccountEndpoint"], configuration["CosmosDb:AccountKey"]);
+    return new CosmosClient(
+        Environment.GetEnvironmentVariable("COSMOS_ACCOUNT_ENDPOINT"), Environment.GetEnvironmentVariable("COSMOS_ACCOUNT_KEY")
+        );
 });
 
 builder.Services.AddScoped<IUserService, UserService>();

@@ -11,7 +11,8 @@ namespace Dotnet_Core_Project.Repositories
 
         public UserBioDataRepository(CosmosClient cosmosClient, IConfiguration configuration)
         {
-            _container = cosmosClient.GetContainer(configuration["CosmosDb:DatabaseName"], configuration["CosmosDb:ContainerName"]);
+            _container = cosmosClient.GetContainer(Environment.GetEnvironmentVariable("COSMOS_DATABASE_NAME"),
+                Environment.GetEnvironmentVariable("COSMOS_CONTAINER_NAME"));
         }
 
         public async Task AddAsync(UserBioDataModel userBioData)

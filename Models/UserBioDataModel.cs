@@ -5,8 +5,8 @@ namespace health_pal_backend.Models;
 
 public class UserBioDataModel
 {
-    [JsonProperty("userid")]
-    public int UserId { get; set; }
+    [JsonProperty("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
     [JsonProperty("birthday")]
     public DateOnly BirthDay { get; set; }
     [JsonProperty("weight")]

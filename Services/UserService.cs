@@ -121,17 +121,17 @@ public class UserService : IUserService
     {
         var claims = new []
         {
-            new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
+            new Claim(JwtRegisteredClaimNames.Sub, Environment.GetEnvironmentVariable("JWT_SUBJECT")),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("UserId", user.Id.ToString()),
             new Claim("Email", user.Email),
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")));
         var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(
-            _configuration["Jwt:Issuer"],
-            _configuration["Jwt:Audience"],
+            Environment.GetEnvironmentVariable("JWT_ISSUER"),
+            Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
             claims,
             expires: DateTime.UtcNow.AddMinutes(10),
             signingCredentials: signIn

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -19,4 +20,7 @@ public class UserModel
 
     [Required]
     public required string Password { get; set; }
+
+    [Required]
+    public required string DocumentID { get; set; }
 }

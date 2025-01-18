@@ -6,8 +6,8 @@ namespace health_pal_backend.Repositories;
 public interface IUserBioDataRepository
 {
     Task AddAsync(UserBioDataModel userBioData);
-    Task<UserBioDataModel?> GetIdByAsync(int id);
+    Task<UserBioDataModel?> GetIdByAsync(string id);
     Task<IEnumerable<UserBioDataModel>> GetAllAsync();
     Task UpdateAsync(UserBioDataModel userBioData);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(string id);
 }

@@ -17,14 +17,14 @@ namespace Dotnet_Core_Project.Repositories
 
         public async Task AddAsync(UserBioDataModel userBioData)
         {
-            await _container.CreateItemAsync(userBioData, new PartitionKey(userBioData.UserId));
+            await _container.CreateItemAsync(userBioData, new PartitionKey(userBioData.Id));
         }
 
-        public async Task<UserBioDataModel?> GetIdByAsync(int id)
+        public async Task<UserBioDataModel?> GetIdByAsync(string id)
         {
             try
             {
-                var response = await _container.ReadItemAsync<UserBioDataModel>(id.ToString(), new PartitionKey(id));
+                var response = await _container.ReadItemAsync<UserBioDataModel>(id, new PartitionKey(id));
                 return response.Resource;
             }
             catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -47,12 +47,12 @@ namespace Dotnet_Core_Project.Repositories
 
         public async Task UpdateAsync(UserBioDataModel userBioData)
         {
-            await _container.UpsertItemAsync(userBioData, new PartitionKey(userBioData.UserId));
+            await _container.UpsertItemAsync(userBioData, new PartitionKey(userBioData.Id));
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(string id)
         {
-            await _container.DeleteItemAsync<UserBioDataModel>(id.ToString(), new PartitionKey(id));
+            await _container.DeleteItemAsync<UserBioDataModel>(id, new PartitionKey(id));
         }
     }
 }

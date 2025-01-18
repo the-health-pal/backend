@@ -10,14 +10,15 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace health_pal_backend.Services;
 
-public interface IUserService{
+public interface IUserService
+{
 
-        Task<string> RegisterAsync(UserRegDTO dto);
-        Task<string> LoginAsync(UserLoginDTO dto);
-        Task<IEnumerable<UserModel>> GetUsersAsync();
-        Task<UserModel> GetUserByIdAsync(int id);
-        Task UpdateUserAsync(int id, UserUpdateDTO dto);
-        Task DeleteUserAsync(int id);
+    Task<string> RegisterAsync(UserRegDTO dto);
+    Task<string> LoginAsync(UserLoginDTO dto);
+    Task<IEnumerable<UserModel>> GetUsersAsync();
+    Task<UserModel> GetUserByIdAsync(int id);
+    Task UpdateUserAsync(int id, UserUpdateDTO dto);
+    Task DeleteUserAsync(int id);
 
 }
 public class UserService : IUserService
@@ -36,30 +37,30 @@ public class UserService : IUserService
     {
         var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
 
-        if(existingUser != null)
+        if (existingUser != null)
         {
             return "User with this email already exists";
         }
 
-        var user = new UserModel
-        {
-            Name = dto.Name,
-            Email = dto.Email,
-            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password)
-        };
-
-        await _userRepository.AddAsync(user);
-        await _userRepository.SaveChangesAsync();
-
         var userBioData = new UserBioDataModel
         {
-            UserId = user.Id,
             BirthDay = dto.BirthDate,
             Weight = dto.Weight,
             Height = dto.Height
         };
 
         await _userBioDataRepository.AddAsync(userBioData);
+
+        var user = new UserModel
+        {
+            Name = dto.Name,
+            Email = dto.Email,
+            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            DocumentID = userBioData.Id,
+        };
+
+        await _userRepository.AddAsync(user);
+        await _userRepository.SaveChangesAsync();
 
         return GenerateJwtToken(user);
     }
@@ -74,12 +75,12 @@ public class UserService : IUserService
         return GenerateJwtToken(user);
     }
 
-     public async Task<IEnumerable<UserModel>> GetUsersAsync()
+    public async Task<IEnumerable<UserModel>> GetUsersAsync()
     {
         return await _userRepository.GetAllAsync();
     }
 
-     public async Task<UserModel> GetUserByIdAsync(int id)
+    public async Task<UserModel> GetUserByIdAsync(int id)
     {
         return await _userRepository.GetByIdAsync(id);
     }
@@ -114,12 +115,12 @@ public class UserService : IUserService
 
         await _userRepository.DeleteAsync(user);
         await _userRepository.SaveChangesAsync();
-        await _userBioDataRepository.DeleteAsync(id);
+        await _userBioDataRepository.DeleteAsync(user.DocumentID);
     }
 
     private string GenerateJwtToken(UserModel user)
     {
-        var claims = new []
+        var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, Environment.GetEnvironmentVariable("JWT_SUBJECT")),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),

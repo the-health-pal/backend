@@ -3,9 +3,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Dotnet_Core_Project.Repositories;
+using health_pal_backend.Config;
 using health_pal_backend.DTOs;
 using health_pal_backend.Models;
 using health_pal_backend.Repositories;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.IdentityModel.Tokens;
 
 namespace health_pal_backend.Services;
@@ -25,11 +27,13 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
+    private readonly AppDbContext _dbContext;
     private readonly IUserBioDataRepository _userBioDataRepository;
-    public UserService(IUserRepository userRepository, IConfiguration configuration, IUserBioDataRepository userBioDataRepository)
+    public UserService(IUserRepository userRepository, IConfiguration configuration, AppDbContext dbContext, IUserBioDataRepository userBioDataRepository)
     {
         _userRepository = userRepository;
         _configuration = configuration;
+        _dbContext = dbContext;
         _userBioDataRepository = userBioDataRepository;
     }
 
@@ -42,27 +46,45 @@ public class UserService : IUserService
             return "User with this email already exists";
         }
 
-        var userBioData = new UserBioDataModel
+        using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        UserBioDataModel userBioData = null;
+        try
         {
-            BirthDay = dto.BirthDate,
-            Weight = dto.Weight,
-            Height = dto.Height
-        };
+            userBioData = new UserBioDataModel
+            {
+                BirthDay = dto.BirthDate,
+                Weight = dto.Weight,
+                Height = dto.Height
+            };
 
-        await _userBioDataRepository.AddAsync(userBioData);
+            await _userBioDataRepository.AddAsync(userBioData);
 
-        var user = new UserModel
+            var user = new UserModel
+            {
+                Name = dto.Name,
+                Email = dto.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                DocumentID = userBioData.Id,
+            };
+
+            await _userRepository.AddAsync(user);
+            await _userRepository.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            return GenerateJwtToken(user);
+        }
+        catch (Exception)
         {
-            Name = dto.Name,
-            Email = dto.Email,
-            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            DocumentID = userBioData.Id,
-        };
+            await transaction.RollbackAsync();
+            if(userBioData != null)
+            {
+                await _userBioDataRepository.DeleteAsync(userBioData.Id);
+            }
 
-        await _userRepository.AddAsync(user);
-        await _userRepository.SaveChangesAsync();
+            throw;
+        }
 
-        return GenerateJwtToken(user);
     }
 
     public async Task<string> LoginAsync(UserLoginDTO dto)

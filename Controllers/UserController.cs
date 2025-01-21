@@ -21,9 +21,16 @@ namespace health_pal_backend.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegDTO dto)
         {
-            var token = await _userService.RegisterAsync(dto);
-            _logger.LogInformation($"User registered successfully: {dto.Email}");
-            return Ok(new { Token = token, Message = "User registered successfully" });
+            try
+            {
+                var token = await _userService.RegisterAsync(dto);
+                _logger.LogInformation($"User registered successfully: {dto.Email}");
+                return Ok(new { Token = token, Message = "User registered successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost("login")]
